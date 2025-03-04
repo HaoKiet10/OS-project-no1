@@ -1,10 +1,8 @@
-#include <iostream>
-
-using namespace std;
+#include ".\Alogirithm\fcfs.cpp"
 
 int main(int argc, char *argv[]) {
-    const char* inputFile = argv[1];
-    const char* outputFile = argv[2];
-    printf("%s\n%s", inputFile, outputFile);
+    const char* inputPath = argv[1];
+    const char* outputPath = argv[2];
+    fcfs();
     return 0;
 }
