@@ -43,8 +43,8 @@ public:
     // Getter
     int getId() {return id;}
     int getArrivalTime() {return arrivalTime;}
-    int getTurnAroundTime() {return completeTime - arrivalTime;}
     int getWaitingTime() {return waitingTime;}
+    int getCompleteTime() {return completeTime;}
     Resource* getRunningResource() {return runningResource;}
     bool isDone() {return runningResource->getBurstTime() == 0;}
     bool isFinish() {return listResource.empty() && runningResource == nullptr;}
@@ -62,6 +62,7 @@ public:
     void setId(int a) {id = a;}
     void setArrivalTime(int a) {arrivalTime = a;}
     void setCompleteTime(int a) {completeTime = a;}
+    void setRunningResource(Resource* a) {runningResource = a;}
     void addResource(Resource* a) {listResource.push(a);}
     void removeResource() {listResource.pop();}
     void minusBurstTime() {runningResource->minusBurstTime();}
@@ -116,7 +117,6 @@ void fcfs(string inputPath) {
     getline(readStream, tmp);
     
     numberOfProcess = convertToInt(tmp);
-    bool visited[numberOfProcess] = {false};  
     
     // Load data to each process
     for (int i = 0; i < numberOfProcess; i++) {
@@ -147,10 +147,6 @@ void fcfs(string inputPath) {
     for (int i = 0; i < listProcess.size(); i++) {listProcess[i]->nextResource();} // Start with first resource
 
     while(true) {
-        for (int i = 0; i < listProcess.size(); i++) {
-            if (listProcess[i]->isFinish() && !visited[i]) {listProcess[i]->setCompleteTime(time);}
-        }
-
         if (checkFinish(listProcess)) {break;}
         for (int i = 0; i < listProcess.size(); i++) {
             if (listProcess[i]->getArrivalTime() == time) {
@@ -188,6 +184,7 @@ void fcfs(string inputPath) {
                     if (cpuRunning->getRunningResource()->getType() == "R1") {r1Queue.push(cpuRunning);}
                     if (cpuRunning->getRunningResource()->getType() == "R2") {r2Queue.push(cpuRunning);}
                 }
+                else cpuRunning->setRunningResource(nullptr);
                 cpuRunning = nullptr;
             }
         }
@@ -201,6 +198,7 @@ void fcfs(string inputPath) {
                     if (r1Running->getRunningResource()->getType() == "R1") {r1Queue.push(r1Running);}
                     if (r1Running->getRunningResource()->getType() == "R2") {r2Queue.push(r1Running);}
                 }
+                else r1Running->setRunningResource(nullptr);
                 r1Running = nullptr;
             }
         }
@@ -214,20 +212,37 @@ void fcfs(string inputPath) {
                     if (r2Running->getRunningResource()->getType() == "R1") {r1Queue.push(r2Running);}
                     if (r2Running->getRunningResource()->getType() == "R2") {r2Queue.push(r2Running);}
                 }   
+                else r2Running->setRunningResource(nullptr);
                 r2Running = nullptr;
             }
         }
         else r2Line += "_";
-
         updateWaitingTime(cpuQueue);
         time++;
     }   
     cout << cpuLine << endl;
     cout << r1Line << endl;
     cout << r2Line << endl;
-    for (int i = 0; i < listProcess.size(); i++) 
-        cout << listProcess[i]->getTurnAroundTime() << " ";
+    
+    for (int i = 0; i < cpuLine.size(); i++) {
+        if (cpuLine[i] == '_') continue;
+        int rTime = i+1;
+        int id = convertToInt(cpuLine.substr(i, 1));
+        if (listProcess[id-1]->getCompleteTime() < rTime) listProcess[id-1]->setCompleteTime(rTime);
+    }
+    for (int i = 0; i < r1Line.size(); i++) {
+        if (r1Line[i] == '_') continue;
+        int rTime = i+1;
+        int id = convertToInt(r1Line.substr(i, 1));
+        if (listProcess[id-1]->getCompleteTime() < rTime) listProcess[id-1]->setCompleteTime(rTime);
+    }
+    for (int i = 0; i < r2Line.size(); i++) {
+        if (r2Line[i] == '_') continue;
+        int rTime = i+1;
+        int id = convertToInt(r2Line.substr(i, 1));
+        if (listProcess[id-1]->getCompleteTime() < rTime) listProcess[id-1]->setCompleteTime(rTime);
+    }
+    for (auto it : listProcess) {cout << it->getCompleteTime() - it->getArrivalTime() << ' ';}
     cout << endl;
-    for (int i = 0; i < listProcess.size(); i++) 
-        cout << listProcess[i]->getWaitingTime() << " ";
+    for (auto it : listProcess) {cout << it->getWaitingTime() << ' ';}
 }
