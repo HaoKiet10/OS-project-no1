@@ -156,6 +156,37 @@ void fcfs(string inputPath) {
             }
         }
 
+        if (cpuRunning != nullptr)
+            if (cpuRunning->isDone()) {
+                if (cpuRunning->nextResource()) {
+                    if (cpuRunning->getRunningResource()->getType() == "CPU") {cpuQueue.push(cpuRunning);}
+                    if (cpuRunning->getRunningResource()->getType() == "R1") {r1Queue.push(cpuRunning);}
+                    if (cpuRunning->getRunningResource()->getType() == "R2") {r2Queue.push(cpuRunning);}
+                }
+                else cpuRunning->setRunningResource(nullptr);
+                cpuRunning = nullptr;
+            }
+        if (r1Running != nullptr)
+            if (r1Running->isDone()) {
+                if (r1Running->nextResource()) {
+                    if (r1Running->getRunningResource()->getType() == "CPU") {cpuQueue.push(r1Running);}
+                    if (r1Running->getRunningResource()->getType() == "R1") {r1Queue.push(r1Running);}
+                    if (r1Running->getRunningResource()->getType() == "R2") {r2Queue.push(r1Running);}
+                }
+                else r1Running->setRunningResource(nullptr);
+                r1Running = nullptr;
+            }
+        if (r2Running != nullptr)
+            if (r2Running->isDone()) {
+                if (r2Running->nextResource()) {
+                    if (r2Running->getRunningResource()->getType() == "CPU") {cpuQueue.push(r2Running);}
+                    if (r2Running->getRunningResource()->getType() == "R1") {r1Queue.push(r2Running);}
+                    if (r2Running->getRunningResource()->getType() == "R2") {r2Queue.push(r2Running);}
+                }   
+                else r2Running->setRunningResource(nullptr);
+                r2Running = nullptr;
+            }
+
         if (cpuRunning == nullptr) {
             if (!cpuQueue.empty()) {
                 cpuRunning = cpuQueue.front();
@@ -178,43 +209,16 @@ void fcfs(string inputPath) {
         if (cpuRunning != nullptr) {
             cpuLine += to_string(cpuRunning->getId());
             cpuRunning->minusBurstTime();
-            if (cpuRunning->isDone()) {
-                if (cpuRunning->nextResource()) {
-                    if (cpuRunning->getRunningResource()->getType() == "CPU") {cpuQueue.push(cpuRunning);}
-                    if (cpuRunning->getRunningResource()->getType() == "R1") {r1Queue.push(cpuRunning);}
-                    if (cpuRunning->getRunningResource()->getType() == "R2") {r2Queue.push(cpuRunning);}
-                }
-                else cpuRunning->setRunningResource(nullptr);
-                cpuRunning = nullptr;
-            }
         }
         else cpuLine += "_";
         if (r1Running != nullptr) {
             r1Line += to_string(r1Running->getId());
             r1Running->minusBurstTime();
-            if (r1Running->isDone()) {
-                if (r1Running->nextResource()) {
-                    if (r1Running->getRunningResource()->getType() == "CPU") {cpuQueue.push(r1Running);}
-                    if (r1Running->getRunningResource()->getType() == "R1") {r1Queue.push(r1Running);}
-                    if (r1Running->getRunningResource()->getType() == "R2") {r2Queue.push(r1Running);}
-                }
-                else r1Running->setRunningResource(nullptr);
-                r1Running = nullptr;
-            }
         }
         else r1Line += "_";
         if (r2Running != nullptr) {
             r2Line += to_string(r2Running->getId());
             r2Running->minusBurstTime();
-            if (r2Running->isDone()) {
-                if (r2Running->nextResource()) {
-                    if (r2Running->getRunningResource()->getType() == "CPU") {cpuQueue.push(r2Running);}
-                    if (r2Running->getRunningResource()->getType() == "R1") {r1Queue.push(r2Running);}
-                    if (r2Running->getRunningResource()->getType() == "R2") {r2Queue.push(r2Running);}
-                }   
-                else r2Running->setRunningResource(nullptr);
-                r2Running = nullptr;
-            }
         }
         else r2Line += "_";
         updateWaitingTime(cpuQueue);
