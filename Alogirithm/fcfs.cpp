@@ -5,8 +5,11 @@
 #include <sstream>
 #include <vector>
 #include <queue>
+#include <map>
 
 using namespace std;
+
+#define MAX_RESOURCE 3
 
 class Resource {
 private:
@@ -71,12 +74,38 @@ public:
 
 int convertToInt(string str) {return stoi(str);}
 
+int getBurstTime(string str) {
+    string result = "";
+    for (int i = 0; i < str.size(); i++) {
+        if (str[i] == '(') break;
+        result += str[i];
+    }
+    return convertToInt(result);
+}
+
 void updateWaitingTime(queue<Process*> _) {
     queue<Process*> listProcess(_);
     while(!listProcess.empty()) {
         listProcess.front()->updateWaitingTime();
         listProcess.pop();
     }
+}
+
+void writeFile(vector<string>lines, string outputPath, vector<Process*> listProcess) {
+    ofstream writeStream(outputPath);
+    for (auto it : lines) {if (it == "") break; writeStream << it << endl;}
+    for (int i = 0; i < lines.size(); i++) {
+        for (int j = 0; j < lines[i].size(); j++) {
+            if (lines[i][j] == '_') continue;
+            int rTime = j+1;
+            int id = convertToInt(lines[i].substr(j, 1));
+            if (listProcess[id-1]->getCompleteTime() < rTime) listProcess[id-1]->setCompleteTime(rTime);
+        }
+    } 
+    for (auto it : listProcess) {writeStream << it->getCompleteTime() - it->getArrivalTime() << ' ';}
+    writeStream << endl;
+    for (auto it : listProcess) {writeStream << it->getWaitingTime() << ' ';}
+
 }
 
 vector<string> split(string line) {
@@ -95,50 +124,53 @@ bool checkFinish(vector<Process*> listProcess) {
     return true;
 }
 
+string getResourceType(string str) {
+    size_t index = str.find("(");
+    string type = "";
+    if (index == string::npos) return "CPU";
+    for (int i = index+1; i < str.size(); i++) {
+        if (str[i] == ')') break;
+        type += str[i];
+    }
+    return type;
+}
+
 void fcfs(string inputPath) {
-    ifstream readStream(inputPath);
-    queue<Process*> cpuQueue;
-    queue<Process*> r1Queue;
-    queue<Process*> r2Queue;
-
-    vector<Process*> listProcess;
-    Process* cpuRunning = nullptr;
-    Process* r1Running = nullptr;
-    Process* r2Running = nullptr;
-
     string tmp;
-    string cpuLine;
-    string r1Line;
-    string r2Line;
     int numberOfProcess;
     int time = 0;
 
+    map<string, int> resourceTable;
+    ifstream readStream(inputPath);
+
     getline(readStream, tmp);
     getline(readStream, tmp);
-    
     numberOfProcess = convertToInt(tmp);
+
+    vector<queue<Process*>> resourceQueue(MAX_RESOURCE);
+    vector<Process*> listProcess;
+    vector<Process*> listRunning(MAX_RESOURCE);
+    vector<string> line(MAX_RESOURCE, "");
     
+    resourceTable["CPU"] = 0;
     // Load data to each process
     for (int i = 0; i < numberOfProcess; i++) {
         getline(readStream, tmp);
         Process* newProcess = new Process();
         vector<string> processInfo = split(tmp);
-        int at = convertToInt(processInfo[0]); // arrival time
-        newProcess->setId(i + 1);
-        newProcess->setArrivalTime(at);
 
+        newProcess->setId(i + 1);
+        newProcess->setArrivalTime(convertToInt(processInfo[0]));
+
+        // Load resource to each process
         for (int i = 1; i < processInfo.size(); i++) {
-            size_t index = processInfo[i].find("(");
-            if (index == string::npos)  // Cpu resource
+            string type = getResourceType(processInfo[i]);
+            if (type == "CPU") 
                 newProcess->addResource(new Resource("CPU", convertToInt(processInfo[i])));
             else {
-                string type = processInfo[i].substr(index+1, 2);
-                int burst = convertToInt(processInfo[i].substr(0, index));
-                
-                if (type == "R1") 
-                    newProcess->addResource(new Resource("R1", convertToInt(processInfo[i].substr(0, index))));
-                else 
-                    newProcess->addResource(new Resource("R2", convertToInt(processInfo[i].substr(0, index))));
+                if (resourceTable.find(type) == resourceTable.end()) {resourceTable[type] = resourceTable.size();}
+                int burstTime = getBurstTime(processInfo[i]);
+                newProcess->addResource(new Resource(type, burstTime));
             }
         }
         listProcess.push_back(newProcess);
@@ -150,103 +182,106 @@ void fcfs(string inputPath) {
         if (checkFinish(listProcess)) {break;}
         for (int i = 0; i < listProcess.size(); i++) {
             if (listProcess[i]->getArrivalTime() == time) {
-                if (listProcess[i]->getRunningResource()->getType() == "CPU") {cpuQueue.push(listProcess[i]);}
-                if (listProcess[i]->getRunningResource()->getType() == "R1") {r1Queue.push(listProcess[i]);}
-                if (listProcess[i]->getRunningResource()->getType() == "R2") {r2Queue.push(listProcess[i]);}
+                int index = resourceTable[listProcess[i]->getRunningResource()->getType()];
+                resourceQueue[index].push(listProcess[i]);
             }
         }
 
-        if (cpuRunning != nullptr)
-            if (cpuRunning->isDone()) {
-                if (cpuRunning->nextResource()) {
-                    if (cpuRunning->getRunningResource()->getType() == "CPU") {cpuQueue.push(cpuRunning);}
-                    if (cpuRunning->getRunningResource()->getType() == "R1") {r1Queue.push(cpuRunning);}
-                    if (cpuRunning->getRunningResource()->getType() == "R2") {r2Queue.push(cpuRunning);}
+        for (int i = 0; i < listRunning.size(); i++) {
+            if (listRunning[i] == nullptr) continue;
+            if (listRunning[i]->isDone()) { 
+                if (listRunning[i]->nextResource()) {
+                    int index = resourceTable[listRunning[i]->getRunningResource()->getType()];
+                    resourceQueue[index].push(listRunning[i]);
                 }
-                else cpuRunning->setRunningResource(nullptr);
-                cpuRunning = nullptr;
+                else listRunning[i]->setRunningResource(nullptr);
+                listRunning[i] = nullptr;
             }
-        if (r1Running != nullptr)
-            if (r1Running->isDone()) {
-                if (r1Running->nextResource()) {
-                    if (r1Running->getRunningResource()->getType() == "CPU") {cpuQueue.push(r1Running);}
-                    if (r1Running->getRunningResource()->getType() == "R1") {r1Queue.push(r1Running);}
-                    if (r1Running->getRunningResource()->getType() == "R2") {r2Queue.push(r1Running);}
-                }
-                else r1Running->setRunningResource(nullptr);
-                r1Running = nullptr;
-            }
-        if (r2Running != nullptr)
-            if (r2Running->isDone()) {
-                if (r2Running->nextResource()) {
-                    if (r2Running->getRunningResource()->getType() == "CPU") {cpuQueue.push(r2Running);}
-                    if (r2Running->getRunningResource()->getType() == "R1") {r1Queue.push(r2Running);}
-                    if (r2Running->getRunningResource()->getType() == "R2") {r2Queue.push(r2Running);}
-                }   
-                else r2Running->setRunningResource(nullptr);
-                r2Running = nullptr;
-            }
+        }
+        // if (cpuRunning != nullptr)
+        //     if (cpuRunning->isDone()) {
+        //         if (cpuRunning->nextResource()) {
+        //             if (cpuRunning->getRunningResource()->getType() == "CPU") {cpuQueue.push(cpuRunning);}
+        //             if (cpuRunning->getRunningResource()->getType() == "R1") {r1Queue.push(cpuRunning);}
+        //             if (cpuRunning->getRunningResource()->getType() == "R2") {r2Queue.push(cpuRunning);}
+        //         }
+        //         else cpuRunning->setRunningResource(nullptr);
+        //         cpuRunning = nullptr;
+        //     }
+        // if (r1Running != nullptr)
+        //     if (r1Running->isDone()) {
+        //         if (r1Running->nextResource()) {
+        //             if (r1Running->getRunningResource()->getType() == "CPU") {cpuQueue.push(r1Running);}
+        //             if (r1Running->getRunningResource()->getType() == "R1") {r1Queue.push(r1Running);}
+        //             if (r1Running->getRunningResource()->getType() == "R2") {r2Queue.push(r1Running);}
+        //         }
+        //         else r1Running->setRunningResource(nullptr);
+        //         r1Running = nullptr;
+        //     }
+        // if (r2Running != nullptr)
+        //     if (r2Running->isDone()) {
+        //         if (r2Running->nextResource()) {
+        //             if (r2Running->getRunningResource()->getType() == "CPU") {cpuQueue.push(r2Running);}
+        //             if (r2Running->getRunningResource()->getType() == "R1") {r1Queue.push(r2Running);}
+        //             if (r2Running->getRunningResource()->getType() == "R2") {r2Queue.push(r2Running);}
+        //         }   
+        //         else r2Running->setRunningResource(nullptr);
+        //         r2Running = nullptr;
+        //     }
 
-        if (cpuRunning == nullptr) {
-            if (!cpuQueue.empty()) {
-                cpuRunning = cpuQueue.front();
-                cpuQueue.pop();
-            }
-        }
-        if (r1Running == nullptr) {
-            if (!r1Queue.empty()) {
-                r1Running = r1Queue.front();
-                r1Queue.pop();
-            }
-        }
-        if (r2Running == nullptr) {
-            if (!r2Queue.empty()) {
-                r2Running = r2Queue.front();
-                r2Queue.pop();
-            }
-        }
 
-        if (cpuRunning != nullptr) {
-            cpuLine += to_string(cpuRunning->getId());
-            cpuRunning->minusBurstTime();
+        for (int i = 0; i < listRunning.size(); i++) {
+            if (listRunning[i] != nullptr) continue;
+            if (resourceQueue[i].empty()) continue;
+            listRunning[i] = resourceQueue[i].front();
+            resourceQueue[i].pop();
         }
-        else cpuLine += "_";
-        if (r1Running != nullptr) {
-            r1Line += to_string(r1Running->getId());
-            r1Running->minusBurstTime();
+        // if (cpuRunning == nullptr) {
+        //     if (!cpuQueue.empty()) {
+        //         cpuRunning = cpuQueue.front();
+        //         cpuQueue.pop();
+        //     }
+        // }
+        // if (r1Running == nullptr) {
+        //     if (!r1Queue.empty()) {
+        //         r1Running = r1Queue.front();
+        //         r1Queue.pop();
+        //     }
+        // }
+        // if (r2Running == nullptr) {
+        //     if (!r2Queue.empty()) {
+        //         r2Running = r2Queue.front();
+        //         r2Queue.pop();
+        //     }
+        // }
+
+        for (int i = 0; i < listRunning.size(); i++) {
+            if (i >= resourceTable.size()) break;
+            if (listRunning[i] == nullptr) line[i] += "_";
+            else {
+                line[i] += to_string(listRunning[i]->getId());
+                listRunning[i]->minusBurstTime();
+            }
         }
-        else r1Line += "_";
-        if (r2Running != nullptr) {
-            r2Line += to_string(r2Running->getId());
-            r2Running->minusBurstTime();
-        }
-        else r2Line += "_";
-        updateWaitingTime(cpuQueue);
+        // if (cpuRunning != nullptr) {
+        //     cpuLine += to_string(cpuRunning->getId());
+        //     cpuRunning->minusBurstTime();
+        // }
+        // else cpuLine += "_";
+        // if (r1Running != nullptr) {
+        //     r1Line += to_string(r1Running->getId());
+        //     r1Running->minusBurstTime();
+        // }
+        // else r1Line += "_";
+        // if (r2Running != nullptr) {
+        //     r2Line += to_string(r2Running->getId());
+        //     r2Running->minusBurstTime();
+        // }
+        // else r2Line += "_";
+        updateWaitingTime(resourceQueue[0]);
         time++;
     }   
-    cout << cpuLine << endl;
-    cout << r1Line << endl;
-    cout << r2Line << endl;
-    
-    for (int i = 0; i < cpuLine.size(); i++) {
-        if (cpuLine[i] == '_') continue;
-        int rTime = i+1;
-        int id = convertToInt(cpuLine.substr(i, 1));
-        if (listProcess[id-1]->getCompleteTime() < rTime) listProcess[id-1]->setCompleteTime(rTime);
-    }
-    for (int i = 0; i < r1Line.size(); i++) {
-        if (r1Line[i] == '_') continue;
-        int rTime = i+1;
-        int id = convertToInt(r1Line.substr(i, 1));
-        if (listProcess[id-1]->getCompleteTime() < rTime) listProcess[id-1]->setCompleteTime(rTime);
-    }
-    for (int i = 0; i < r2Line.size(); i++) {
-        if (r2Line[i] == '_') continue;
-        int rTime = i+1;
-        int id = convertToInt(r2Line.substr(i, 1));
-        if (listProcess[id-1]->getCompleteTime() < rTime) listProcess[id-1]->setCompleteTime(rTime);
-    }
-    for (auto it : listProcess) {cout << it->getCompleteTime() - it->getArrivalTime() << ' ';}
-    cout << endl;
-    for (auto it : listProcess) {cout << it->getWaitingTime() << ' ';}
+    // Delete the last character of each line
+    for (int i = 0; i < line.size(); i++) {if (line[i] == "") break;line[i].pop_back();}
+    writeFile(line, "output.txt", listProcess);
 }
