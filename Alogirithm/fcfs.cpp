@@ -135,7 +135,7 @@ string getResourceType(string str) {
     return type;
 }
 
-void fcfs(string inputPath) {
+void fcfs(string inputPath, string outputPath) {
     string tmp;
     int numberOfProcess;
     int time = 0;
@@ -283,5 +283,5 @@ void fcfs(string inputPath) {
     }   
     // Delete the last character of each line
     for (int i = 0; i < line.size(); i++) {if (line[i] == "") break;line[i].pop_back();}
-    writeFile(line, "output.txt", listProcess);
+    writeFile(line, outputPath, listProcess);
 }
