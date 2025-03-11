@@ -19,10 +19,10 @@ int main(int argc, char *argv[])
         getline(cin, output_file);
     }
 
-    cout << output_file;
-    int ALGO_type = 0, RR_time = 0, num_of_process = 0;
-    vector<process> pc;
-    pc = ReadInput(input_file, ALGO_type, RR_time, num_of_process);
+    cout << output_file << endl;
+    int ALGO_type = 0, num_of_process = 0;
+    vector<process *> pc;
+    pc = ReadInput(input_file, ALGO_type, num_of_process);
 
     if (ALGO_type == 1)
     {
@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
     }
     else if (ALGO_type == 2)
     {
+        cout << "RUNNING RR...\n";
         return RR_ALGO(pc, num_of_process, output_file);
     }
     else if (ALGO_type == 3)
@@ -38,7 +39,8 @@ int main(int argc, char *argv[])
     }
     else if (ALGO_type == 4)
     {
-        return 0;
+        cout << "RUNNING SRTF...\n";
+        return SRTF_ALGO(pc, num_of_process, output_file);
     }
     else
         return 0;
