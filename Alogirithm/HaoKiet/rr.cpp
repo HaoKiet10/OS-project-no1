@@ -15,7 +15,7 @@ bool RR_run(vector<process *> pc, int numOfProcess, string output_file_path)
     int cpu_counter = 0, r1_counter = 0, r2_counter = 0;
     int time = 0;
     bool allProcessDone = 0;
-    while (!allProcessDone || !inProgress.empty())
+    while ((!allProcessDone || !inProgress.empty()) && time < 50)
     {
         cout << "\nTIME: " << time << endl;
         for (int i = 0; i < numOfProcess; i++)
@@ -59,6 +59,8 @@ bool RR_run(vector<process *> pc, int numOfProcess, string output_file_path)
                         cout << "Process " << temp->getName() << " done at time: " << time - 1 << endl;
                         temp->endTime = time - 1;
                     }
+                    i--;
+                    size--;
                 }
             }
         }
