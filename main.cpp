@@ -1,5 +1,5 @@
-#include ".\Alogirithm\fcfs.cpp"
-#include ".\Alogirithm\sjf.cpp"
+#include ".\Alogirithm\ThanhDat\fcfs.cpp"
+#include ".\Alogirithm\ThanhDat\sjf.cpp"
 
 int main(int argc, char *argv[])
 {
