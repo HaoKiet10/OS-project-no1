@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ALGO.h"
 #include <sstream>
 #include <string>

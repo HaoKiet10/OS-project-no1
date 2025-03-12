@@ -3,14 +3,6 @@
 #include "ALGO.h"
 #include "read.cpp"
 
-int RoundRobin(string input_file_path, string output_file_path)
-{
-    int ALGO_type = 0, numOfProcess = 0;
-    vector<process *> pc = ReadInput(input_file_path, ALGO_type, numOfProcess);
-    if (ALGO_type == 2)
-        return RR_run(pc, numOfProcess, output_file_path);
-    return 0;
-}
 bool RR_run(vector<process *> pc, int numOfProcess, string output_file_path)
 {
     vector<int> CPU_usage, R1_usage, R2_usage;
@@ -190,4 +182,13 @@ bool RR_run(vector<process *> pc, int numOfProcess, string output_file_path)
     }
 
     return WriteOutput(output_file_path, CPU_usage, R1_usage, R2_usage, pc);
+}
+
+int rr(string input_file_path, string output_file_path)
+{
+    int ALGO_type = 0, numOfProcess = 0;
+    vector<process *> pc = ReadInput(input_file_path, ALGO_type, numOfProcess);
+    if (ALGO_type == 2)
+        return RR_run(pc, numOfProcess, output_file_path);
+    return 0;
 }

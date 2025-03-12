@@ -3,15 +3,6 @@
 #include "ALGO.h"
 #include "read.cpp"
 
-int ShortestRemainingTimeFirst(string input_file_path, string output_file_path)
-{
-    int ALGO_type = 0, numOfProcess = 0;
-    vector<process *> pc = ReadInput(input_file_path, ALGO_type, numOfProcess);
-    if (ALGO_type == 4)
-        return SRTF_run(pc, numOfProcess, output_file_path);
-    return 0;
-}
-
 void showPQ(priority_queue<pair<int, process *>> pq)
 {
     priority_queue<pair<int, process *>> show = pq;
@@ -204,4 +195,13 @@ bool SRTF_run(vector<process *> pc, int numOfProcess, string output_file_path)
     }
 
     return WriteOutput(output_file_path, CPU_usage, R1_usage, R2_usage, pc);
+}
+
+int srtn(string input_file_path, string output_file_path)
+{
+    int ALGO_type = 0, numOfProcess = 0;
+    vector<process *> pc = ReadInput(input_file_path, ALGO_type, numOfProcess);
+    if (ALGO_type == 4)
+        return SRTF_run(pc, numOfProcess, output_file_path);
+    return 0;
 }
