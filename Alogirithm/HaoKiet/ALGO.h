@@ -267,22 +267,22 @@ bool WriteOutput(string output_file_path, vector<int> CPU_usage, vector<int> R1_
     for (int i = 0; i < cpu_len; i++)
     {
         if (CPU_usage[i] == -1)
-            output << "_ ";
+            output << "_";
         else
-            output << CPU_usage[i] << " ";
+            output << CPU_usage[i];
     }
     output << endl;
     for (int i = 0; i < r1_len; i++)
         if (R1_usage[i] == -1)
-            output << "_ ";
+            output << "_";
         else
-            output << R1_usage[i] << " ";
+            output << R1_usage[i];
     output << endl;
     for (int i = 0; i < r2_len; i++)
         if (R2_usage[i] == -1)
-            output << "_ ";
+            output << "_";
         else
-            output << R2_usage[i] << " ";
+            output << R2_usage[i];
     output << endl;
 
     for (int i = 0; i < pc.size(); i++)
