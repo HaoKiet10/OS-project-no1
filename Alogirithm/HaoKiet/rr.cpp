@@ -17,15 +17,12 @@ bool RR_run(vector<process *> pc, int numOfProcess, string output_file_path)
     bool allProcessDone = 0;
     while ((!allProcessDone || !inProgress.empty()) && time < 50)
     {
-        cout << "\nTIME: " << time << endl;
         for (int i = 0; i < numOfProcess; i++)
         {
             int arriveTime = pc[i]->getArriveTime();
             if (arriveTime == time)
             {
-                cout << "Process " << pc[i]->getName() << " arrives at time: " << time << endl;
                 int typeOfProcess = pc[i]->getNextOrder();
-                // cout << typeOfProcess << endl;
                 if (typeOfProcess == 0)
                     CPU_wait.push(pc[i]);
                 else if (typeOfProcess == 1)
@@ -55,10 +52,7 @@ bool RR_run(vector<process *> pc, int numOfProcess, string output_file_path)
                             R2_wait.push(temp);
                     }
                     else
-                    {
-                        cout << "Process " << temp->getName() << " done at time: " << time - 1 << endl;
                         temp->endTime = time - 1;
-                    }
                     i--;
                     size--;
                 }
@@ -72,14 +66,6 @@ bool RR_run(vector<process *> pc, int numOfProcess, string output_file_path)
         }
         else if (cpu_counter == time)
         {
-            cout << "List process to run (CPU):\n";
-            for (int i = 0; i < CPU_wait.size(); i++)
-            {
-                process *temp2 = CPU_wait.front();
-                CPU_wait.pop();
-                temp2->print();
-                CPU_wait.push(temp2);
-            }
             process *temp = CPU_wait.front();
             CPU_wait.pop();
             int size = CPU_wait.size();
@@ -126,8 +112,6 @@ bool RR_run(vector<process *> pc, int numOfProcess, string output_file_path)
             temp->progressTime = time + run_time;
             inProgress.push_back(temp);
 
-            cout << "Process " << name << " runs R1...\n";
-
             for (; run_time > 0; run_time--)
                 R1_usage.push_back(name);
         }
@@ -157,8 +141,6 @@ bool RR_run(vector<process *> pc, int numOfProcess, string output_file_path)
             r2_counter += run_time;
             temp->progressTime = time + run_time;
             inProgress.push_back(temp);
-
-            cout << "Process " << name << " runs R2...\n";
 
             for (; run_time > 0; run_time--)
                 R2_usage.push_back(name);

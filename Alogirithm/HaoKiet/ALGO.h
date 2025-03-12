@@ -136,7 +136,6 @@ public:
 
     int RR_run()
     {
-        cout << "Process " << name << " runs CPU...\n";
         if (CPU_1 > RR_time)
         {
             CPU_1 -= RR_time;
@@ -167,41 +166,6 @@ public:
 
     int FCFS_run()
     {
-        // if (type == CPU)
-        // {
-        //     if (CPU_1 > 0)
-        //     {
-        //         int temp = CPU_1;
-        //         CPU_1 = 0;
-        //         order.pop();
-        //         return temp;
-        //     }
-        //     else if (CPU_2 > 0)
-        //     {
-        //         int temp = CPU_2;
-        //         CPU_2 = 0;
-        //         order.pop();
-        //         return temp;
-        //     }
-        //     else
-        //         return 0;
-        // }
-        // else if (type == R1)
-        // {
-        //     int temp = R_1;
-        //     R_1 = 0;
-        //     order.pop();
-        //     return temp;
-        // }
-        // else if (type == R2)
-        // {
-        //     int temp = R_2;
-        //     R_2 = 0;
-        //     order.pop();
-        //     return temp;
-        // }
-        // return 0;
-
         if (R_1 > 0)
         {
             order.pop();
@@ -222,7 +186,6 @@ public:
 
     int SRTF_run()
     {
-        cout << "Process " << name << " runs CPU...\n";
         if (CPU_1 > 1)
         {
             CPU_1 -= 1;
@@ -253,7 +216,6 @@ public:
 
 bool WriteOutput(string output_file_path, vector<int> CPU_usage, vector<int> R1_usage, vector<int> R2_usage, vector<process *> pc)
 {
-    cout << "WRITTING OUTPUT...\n";
     fstream output(output_file_path, ios::out);
     if (!output)
     {
@@ -296,6 +258,5 @@ bool WriteOutput(string output_file_path, vector<int> CPU_usage, vector<int> R1_
     }
 
     output.close();
-    cout << "DONE...\n";
     return 1;
 }

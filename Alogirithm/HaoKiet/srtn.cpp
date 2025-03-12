@@ -3,12 +3,12 @@
 #include "ALGO.h"
 #include "read.cpp"
 
-void showPQ(priority_queue<pair<int, process *>> pq)
+void waitPQ(priority_queue<pair<int, process *>> pq)
 {
     priority_queue<pair<int, process *>> show = pq;
     while (!show.empty())
     {
-        show.top().second->print();
+        show.top().second->wait();
         show.pop();
     }
 }
@@ -27,13 +27,11 @@ bool SRTF_run(vector<process *> pc, int numOfProcess, string output_file_path)
     bool allProcessDone = 0;
     while ((!allProcessDone || !inProgress.empty()) && time < 50)
     {
-        cout << "\nTIME: " << time << endl;
         for (int i = 0; i < numOfProcess; i++)
         {
             int arriveTime = pc[i]->getArriveTime();
             if (arriveTime == time)
             {
-                cout << "Process " << pc[i]->getName() << " joins at time: " << time << endl;
                 int typeOfProcess = pc[i]->getNextOrder();
                 if (typeOfProcess == 0)
                 {
@@ -72,10 +70,7 @@ bool SRTF_run(vector<process *> pc, int numOfProcess, string output_file_path)
                             R2_wait.push(temp);
                     }
                     else
-                    {
-                        cout << "Process " << temp->getName() << " done at time: " << time - 1 << endl;
                         temp->endTime = time - 1;
-                    }
                     i--;
                     size--;
                 }
@@ -89,18 +84,10 @@ bool SRTF_run(vector<process *> pc, int numOfProcess, string output_file_path)
         }
         else if (cpu_counter == time)
         {
-            cout << "List process to run (CPU): \n";
-            showPQ(CPU_wait);
             pair<int, process *> temp = CPU_wait.top();
             CPU_wait.pop();
             int size = CPU_wait.size();
-            for (int i = 0; i < size; i++)
-            {
-                pair<int, process *> temp2 = CPU_wait.top();
-                CPU_wait.pop();
-                temp2.second->wait();
-                CPU_wait.push(temp2);
-            }
+            waitPQ(CPU_wait);
             int run_time = temp.second->SRTF_run();
             int name = temp.second->getName();
             cpu_counter += run_time;
@@ -137,8 +124,6 @@ bool SRTF_run(vector<process *> pc, int numOfProcess, string output_file_path)
             temp->progressTime = time + run_time;
             inProgress.push_back(temp);
 
-            cout << "Process " << name << " runs R1...\n";
-
             for (; run_time > 0; run_time--)
                 R1_usage.push_back(name);
         }
@@ -168,8 +153,6 @@ bool SRTF_run(vector<process *> pc, int numOfProcess, string output_file_path)
             r2_counter += run_time;
             temp->progressTime = time + run_time;
             inProgress.push_back(temp);
-
-            cout << "Process " << name << " runs R2...\n";
 
             for (; run_time > 0; run_time--)
                 R2_usage.push_back(name);

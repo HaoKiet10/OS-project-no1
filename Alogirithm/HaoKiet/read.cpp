@@ -11,7 +11,6 @@ string nameR1 = "none", nameR2 = "none";
 
 vector<process *> ReadInput(string input_file_path, int &ALGO_type, int &num_of_process)
 {
-    cout << "READING\n";
     fstream input(input_file_path, ios::in);
     vector<process *> pc;
 
@@ -86,8 +85,6 @@ vector<process *> ReadInput(string input_file_path, int &ALGO_type, int &num_of_
             }
         }
         pc[i]->setOrder(order);
-        pc[i]->print();
     }
-    cout << "FINISHED READING\n";
     return pc;
 }
