@@ -5,7 +5,8 @@
 #include <string>
 #include <regex>
 
-regex pattern(R"(\([A-Z][0-9]\))");
+regex pattern1(R"(\([A-Z][0-9]\))");
+regex pattern2(R"(\([A-Z]\))");
 smatch match;
 string nameR1 = "none", nameR2 = "none";
 
@@ -49,7 +50,14 @@ vector<process *> ReadInput(string input_file_path, int &ALGO_type, int &num_of_
         pc[i]->setArriveTime(stoi(token));
         while (iss >> token)
         {
-            if (regex_search(token, match, pattern))
+            if (regex_search(token, match, pattern1))
+            {
+                if (nameR1 == "none")
+                    nameR1 = match[0];
+                else if (match[0] != nameR1 && nameR2 == "none")
+                    nameR2 = match[0];
+            }
+            if (regex_search(token, match, pattern2))
             {
                 if (nameR1 == "none")
                     nameR1 = match[0];

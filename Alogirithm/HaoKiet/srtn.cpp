@@ -70,7 +70,7 @@ bool SRTF_run(vector<process *> pc, int numOfProcess, string output_file_path)
                             R2_wait.push(temp);
                     }
                     else
-                        temp->endTime = time - 1;
+                        temp->endTime = time;
                     i--;
                     size--;
                 }
